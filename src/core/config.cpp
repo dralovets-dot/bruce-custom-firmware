@@ -39,7 +39,7 @@ DynamicJsonDocument BruceConfig::toJson() const {
     return jsonDoc;
 }
 
-void BruceConfig::fromJson(const JsonDocument& doc) {
+void BruceConfig::fromJson(const DynamicJsonDocument& doc) {
     if (!doc.is<JsonObject>()) return;
     
     JsonObject root = doc.as<JsonObject>();

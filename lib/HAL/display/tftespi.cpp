@@ -1,5 +1,4 @@
 # Создайте исправленную версию
-cat > tftespi.cpp << 'EOF'
 #include "tftespi.h"
 
 // ============ tft_display ============
@@ -172,4 +171,3 @@ int16_t tft_sprite::fontHeight() {
 TFT_eSprite *tft_sprite::nativeSprite() {
     return static_cast<TFT_eSprite *>(this);
 }
-EOF

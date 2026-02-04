@@ -1,0 +1,70 @@
+#!/bin/bash
+FILE="src/modules/rf/rf_bruteforce.cpp"
+
+# Создаем патч
+cat > fix.patch << 'PATCH'
+--- a/src/modules/rf/rf_bruteforce.cpp
++++ b/src/modules/rf/rf_bruteforce.cpp
+@@ -382,20 +382,20 @@
+                 displayRedStripe("Dict: " + stats.get_display_string(), 
+                                TFT_CYAN, TFT_BLACK);
+             }
+         }
+         
+         if (success_found && brute_stop_on_success) {
+-            goto cleanup;
++            // Выходим из цикла словаря
++            break;
+         }
+     }
+ 
+     // Полный брутфорс
+     displayRedStripe("Starting bruteforce...", TFT_BLUE, TFT_BLACK);
+     delay(1000);
+     
+-    uint32_t max_keys = (1u << bits);
+     for (uint32_t i = 0; i < (1u << bits); ++i) {
+         // Пропускаем если уже проверяли в словаре
+         if (brute_use_dictionary && !dictionary.empty()) {
+             bool in_dict = false;
+@@ -451,11 +451,12 @@
+             
+             save_successful_key(brute_protocol, brute_frequency, i, bits);
+             
+             String success_msg = "SUCCESS! Key: 0x" + String(i, HEX);
+             displayRedStripe(success_msg, TFT_GREEN, TFT_BLACK);
+             delay(2000);
+             
+             if (brute_stop_on_success) {
++                success_found = true;
+                 break;
+             }
+         }
+@@ -477,22 +478,20 @@
+                            bruceConfig.priColor);
+         }
+     }
+ 
+-cleanup:
+     // Финальное сообщение
+     if (success_found) {
+         String final_msg = "Found " + String(success_count) + " key(s)";
+         if (!brute_last_success.isEmpty()) {
+             final_msg += " | Last: " + brute_last_success;
+         }
+         displayRedStripe(final_msg, TFT_GREEN, TFT_BLACK);
+     } else {
+         displayRedStripe("No keys found", TFT_RED, TFT_BLACK);
+     }
+     
+     // Показ статистики
+-    stats.calculate(brute_keys_tested, max_keys);
++    stats.calculate(brute_keys_tested, (1u << bits));
+     String stat_msg = "Tested: " + String(brute_keys_tested) + 
+                      " keys in " + String(stats.elapsed_seconds) + "s";
+     displayRedStripe(stat_msg, TFT_BLUE, TFT_BLACK);
+     
+PATCH
+
+# Применяем патч
+patch -p1 < fix.patch 2>/dev/null || echo "Патч может не примениться, нужно редактировать вручную"

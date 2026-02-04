@@ -5,9 +5,8 @@ on:
     branches: [ "t-embed-custom-mod" ]
   pull_request:
     branches: [ "t-embed-custom-mod" ]
-  workflow_dispatch:  # Позволяет запускать вручную
+  workflow_dispatch:
   schedule:
-    # Запускать каждый день в 12:00 UTC
     - cron: '0 12 * * *'
 
 env:
@@ -58,24 +57,20 @@ jobs:
         cd .pio/build/lilygo-t-embed-cc1101
         echo "Creating combined firmware..."
         
-        # Проверяем существование файлов
         if [ ! -f "bootloader.bin" ] || [ ! -f "partitions.bin" ] || [ ! -f "firmware.bin" ]; then
           echo "Error: Required firmware files not found!"
           ls -la *.bin
           exit 1
         fi
         
-        # Создаем объединенный файл с помощью Python
         python3 -c "
 import sys
 import os
 
-# Размеры в байтах
-BOOTLOADER_OFFSET = 0x1000      # 4096
-PARTITION_OFFSET = 0x8000       # 32768
-FIRMWARE_OFFSET = 0x10000       # 65536
+BOOTLOADER_OFFSET = 0x1000
+PARTITION_OFFSET = 0x8000
+FIRMWARE_OFFSET = 0x10000
 
-# Читаем файлы
 with open('bootloader.bin', 'rb') as f:
     bootloader = f.read()
 with open('partitions.bin', 'rb') as f:
@@ -83,27 +78,18 @@ with open('partitions.bin', 'rb') as f:
 with open('firmware.bin', 'rb') as f:
     firmware = f.read()
 
-# Определяем максимальный размер
 total_size = FIRMWARE_OFFSET + len(firmware)
 print(f'Bootloader: {len(bootloader)} bytes')
 print(f'Partitions: {len(partitions)} bytes')
 print(f'Firmware: {len(firmware)} bytes')
 print(f'Total size: {total_size} bytes')
 
-# Создаем объединенный файл
 with open('bruce-t-embed-combined.bin', 'wb') as f:
-    # Заполняем нулями до firmware
     f.write(b'\\x00' * total_size)
-    
-    # Пишем bootloader
     f.seek(BOOTLOADER_OFFSET)
     f.write(bootloader)
-    
-    # Пишем partitions
     f.seek(PARTITION_OFFSET)
     f.write(partitions)
-    
-    # Пишем firmware
     f.seek(FIRMWARE_OFFSET)
     f.write(firmware)
 

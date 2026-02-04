@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout repository
+    - name: Checkout
       uses: actions/checkout@v4
       with:
         submodules: recursive
@@ -21,24 +21,14 @@ jobs:
         python-version: '3.10'
         
     - name: Install PlatformIO
-      run: |
-        pip install platformio
-        
-    - name: Clean PlatformIO cache
-      run: |
-        pio system prune -f || true
-        rm -rf ~/.platformio
-        rm -rf .pio
-        
-    - name: Build T-Embed
-      run: |
-        echo "Starting build..."
-        pio run -e lilygo-t-embed-cc1101
-        
-    - name: Upload firmware
+      run: pip install platformio
+      
+    - name: Build
+      run: pio run -e lilygo-t-embed-cc1101
+      
+    - name: Upload
       if: success()
       uses: actions/upload-artifact@v4
       with:
-        name: bruce-t-embed
-        path: .pio/build/lilygo-t-embed-cc1101/*.bin
-        retention-days: 30
+        name: bruce-firmware
+        path: .pio/build/lilygo-t-embed-cc1101/firmware.bin

@@ -3,17 +3,14 @@
 
 DynamicJsonDocument BruceConfig::toJson() const {
     DynamicJsonDocument jsonDoc(4096);
-    
     JsonObject root = jsonDoc.to<JsonObject>();
     
     // Настройки темы
-    #ifndef HAS_BRUCETHEME
     root["theme"] = theme;
     root["primaryColor"] = primaryColor;
     root["secondaryColor"] = secondaryColor;
     root["backgroundColor"] = backgroundColor;
     root["textColor"] = textColor;
-    #endif
     
     // Общие настройки
     root["brightness"] = brightness;
@@ -47,48 +44,50 @@ DynamicJsonDocument BruceConfig::toJson() const {
 }
 
 void BruceConfig::fromJson(const DynamicJsonDocument& doc) {
-    // Проверяем, что это JsonObject без использования as<JsonObject>()
-    if (!doc.isNull() && doc.is<JsonObject>()) {
-        JsonObject root = doc.as<JsonObject>();
-        
-        // Настройки темы
-        #ifndef HAS_BRUCETHEME
-        theme = root["theme"] | "default";
-        primaryColor = root["primaryColor"] | 0x0000FF;
-        secondaryColor = root["secondaryColor"] | 0xFF0000;
-        backgroundColor = root["backgroundColor"] | 0x000000;
-        textColor = root["textColor"] | 0xFFFFFF;
-        #endif
-        
-        // Общие настройки
-        brightness = root["brightness"] | 255;
-        dimTime = root["dimTime"] | 30;
-        orientation = root["orientation"] | 0;
-        sleepTime = root["sleepTime"] | 0;
-        bootSound = root["bootSound"] | true;
-        
-        // Настройки WiFi
-        if (root.containsKey("wifi")) {
-            JsonObject wifiObj = root["wifi"];
-            wifiSSID = wifiObj["ssid"] | "";
-            wifiPassword = wifiObj["password"] | "";
-            apSSID = wifiObj["apSSID"] | "BruceAP";
-            apPassword = wifiObj["apPassword"] | "bruce123";
-        }
-        
-        // Настройки часов
-        if (root.containsKey("clock")) {
-            JsonObject clockObj = root["clock"];
-            ntpServer = clockObj["ntpServer"] | "pool.ntp.org";
-            timezone = clockObj["timezone"] | 0;
-            clock24h = clockObj["24h"] | true;
-        }
-        
-        // QR коды
-        qrCodes.clear();
-        if (root.containsKey("qrCodes")) {
-            JsonArray qrArray = root["qrCodes"];
-            for (JsonObject qrEntry : qrArray) {
+    // Используем безопасную проверку вместо as<JsonObject>()
+    if (doc.isNull()) return;
+    
+    // Получаем JsonObject безопасно
+    JsonObject root = doc.as<JsonObject>();
+    if (root.isNull()) return;
+    
+    // Настройки темы
+    theme = root["theme"] | "default";
+    primaryColor = root["primaryColor"] | 0x0000FF;
+    secondaryColor = root["secondaryColor"] | 0xFF0000;
+    backgroundColor = root["backgroundColor"] | 0x000000;
+    textColor = root["textColor"] | 0xFFFFFF;
+    
+    // Общие настройки
+    brightness = root["brightness"] | 255;
+    dimTime = root["dimTime"] | 30;
+    orientation = root["orientation"] | 0;
+    sleepTime = root["sleepTime"] | 0;
+    bootSound = root["bootSound"] | true;
+    
+    // Настройки WiFi
+    JsonObject wifiObj = root["wifi"];
+    if (!wifiObj.isNull()) {
+        wifiSSID = wifiObj["ssid"] | "";
+        wifiPassword = wifiObj["password"] | "";
+        apSSID = wifiObj["apSSID"] | "BruceAP";
+        apPassword = wifiObj["apPassword"] | "bruce123";
+    }
+    
+    // Настройки часов
+    JsonObject clockObj = root["clock"];
+    if (!clockObj.isNull()) {
+        ntpServer = clockObj["ntpServer"] | "pool.ntp.org";
+        timezone = clockObj["timezone"] | 0;
+        clock24h = clockObj["24h"] | true;
+    }
+    
+    // QR коды
+    qrCodes.clear();
+    JsonArray qrArray = root["qrCodes"];
+    if (!qrArray.isNull()) {
+        for (JsonObject qrEntry : qrArray) {
+            if (!qrEntry.isNull()) {
                 QRCode qr;
                 qr.name = qrEntry["name"] | "";
                 qr.data = qrEntry["data"] | "";
@@ -148,13 +147,11 @@ void BruceConfig::saveFile() {
 
 void BruceConfig::resetToDefaults() {
     // Сброс к значениям по умолчанию
-    #ifndef HAS_BRUCETHEME
     theme = "default";
     primaryColor = 0x0000FF;
     secondaryColor = 0xFF0000;
     backgroundColor = 0x000000;
     textColor = 0xFFFFFF;
-    #endif
     
     brightness = 255;
     dimTime = 30;
@@ -173,7 +170,6 @@ void BruceConfig::resetToDefaults() {
     
     qrCodes.clear();
     
-    // Сохраняем настройки по умолчанию
     saveFile();
 }
 

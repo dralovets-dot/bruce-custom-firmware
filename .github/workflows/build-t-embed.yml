@@ -3,14 +3,7 @@ name: Build Bruce for T-Embed CC1101
 on:
   push:
     branches: [ "t-embed-custom-mod" ]
-  pull_request:
-    branches: [ "t-embed-custom-mod" ]
   workflow_dispatch:
-  schedule:
-    - cron: '0 12 * * *'
-
-env:
-  PLATFORMIO_VERSION: "6.1.13"
 
 jobs:
   build:
@@ -21,7 +14,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         submodules: recursive
-        fetch-depth: 0
         
     - name: Setup Python
       uses: actions/setup-python@v5
@@ -30,33 +22,28 @@ jobs:
         
     - name: Install PlatformIO
       run: |
-        python -m pip install --upgrade pip
-        pip install platformio==$PLATFORMIO_VERSION
+        pip install platformio==6.1.13
         
-    - name: Force clean PlatformIO cache
+    - name: Nuclear clean
       run: |
-        echo "Cleaning all PlatformIO cache..."
         rm -rf ~/.platformio
         rm -rf .pio
-        rm -rf /tmp/platformio*
+        sudo rm -rf /tmp/platformio*
         
-    - name: Install specific Arduino-ESP32 framework
+    - name: Install ESP32 framework 2.0.14
       run: |
-        echo "Installing Arduino-ESP32 framework 2.0.14..."
         wget -q https://github.com/espressif/arduino-esp32/releases/download/2.0.14/esp32-2.0.14.zip
         mkdir -p ~/.platformio/packages/framework-arduinoespressif32
-        unzip -q esp32-2.0.14.zip -d ~/.platformio/packages/framework-arduinoespressif32
-        echo "Framework installed successfully"
+        unzip -q esp32-2.0.14.zip -d ~/.platformio/packages/
+        rm esp32-2.0.14.zip
         
-    - name: Build for T-Embed CC1101
+    - name: Build T-Embed
       run: |
-        echo "Starting build..."
-        pio run -e lilygo-t-embed-cc1101 -v
+        pio run -e lilygo-t-embed-cc1101 || pio run -e lilygo-t-embed-cc1101 -v
         
-    - name: Upload firmware artifacts
+    - name: Upload firmware
       if: success()
       uses: actions/upload-artifact@v4
       with:
-        name: firmware-t-embed-cc1101
+        name: bruce-t-embed
         path: .pio/build/lilygo-t-embed-cc1101/*.bin
-        retention-days: 30

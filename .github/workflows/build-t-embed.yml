@@ -190,3 +190,11 @@ print(f'Size: {os.path.getsize(\"bruce-t-embed-combined.bin\")} bytes')
           .pio/build/lilygo-t-embed-cc1101/*.log
           .pio/**/*.log
         retention-days: 7
+
+    - name: Force install Arduino ESP32 framework
+      run: |
+        echo "Installing specific Arduino-ESP32 framework..."
+        wget https://github.com/espressif/arduino-esp32/releases/download/2.0.14/esp32-2.0.14.zip
+        mkdir -p ~/.platformio/packages/framework-arduinoespressif32
+        unzip -q esp32-2.0.14.zip -d ~/.platformio/packages/framework-arduinoespressif32
+        echo "Framework installed"

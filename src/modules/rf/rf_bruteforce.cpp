@@ -1,3 +1,4 @@
+#include <TFT_eSPI.h>
 #include "rf_bruteforce.h"
 
 #include "protocols/Ansonic.h"
@@ -27,7 +28,6 @@ unsigned long brute_start_time = 0;
 unsigned long brute_keys_tested = 0;
 
 // Внешние переменные (должны быть определены в других файлах)
-extern std::vector<MenuOption> options;
 extern BruceConfig bruceConfig;
 extern BruceConfigPins bruceConfigPins;
 
@@ -385,7 +385,7 @@ bool rf_brute_start() {
         }
         
         if (success_found && brute_stop_on_success) {
-            goto cleanup;
+            break;
         }
     }
 
@@ -393,8 +393,7 @@ bool rf_brute_start() {
     displayRedStripe("Starting bruteforce...", TFT_BLUE, TFT_BLACK);
     delay(1000);
     
-    uint32_t max_keys = (1u << bits);
-    for (uint32_t i = 0; i < max_keys; ++i) {
+    for (uint32_t i = 0; i < (1u << bits); ++i) {
         // Пропускаем если уже проверяли в словаре
         if (brute_use_dictionary && !dictionary.empty()) {
             bool in_dict = false;
@@ -462,7 +461,7 @@ bool rf_brute_start() {
         }
     }
 
-cleanup:
+
     // Финальное сообщение
     if (success_found) {
         String final_msg = "Found " + String(success_count) + " key(s)";
@@ -475,7 +474,7 @@ cleanup:
     }
     
     // Показ статистики
-    stats.calculate(brute_keys_tested, max_keys);
+    stats.calculate(brute_keys_tested, (1u << bits));
     String stat_msg = "Tested: " + String(brute_keys_tested) + 
                      " keys in " + String(stats.elapsed_seconds) + "s";
     displayRedStripe(stat_msg, TFT_BLUE, TFT_BLACK);

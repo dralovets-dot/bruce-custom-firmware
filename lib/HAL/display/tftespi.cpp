@@ -1,3 +1,5 @@
+# Создайте исправленную версию
+cat > tftespi.cpp << 'EOF'
 #include "tftespi.h"
 
 // ============ tft_display ============
@@ -71,7 +73,7 @@ int16_t tft_display::fontHeight() {
 }
 
 void tft_display::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data) {
-    TFT_eSPI::pushImage(x, y, w, h, data);
+    TFT_eSPI::pushImage(x, y, w, h, const_cast<uint8_t*>(data));
 }
 
 void tft_display::startWrite() {
@@ -89,7 +91,7 @@ TFT_eSPI *tft_display::native() {
 // ============ tft_sprite ============
 
 tft_sprite::tft_sprite(tft_display *parent) 
-    : TFT_eSprite(static_cast<TFT_eSPI *>(parent)) {}
+    : TFT_eSprite(parent ? parent->native() : nullptr) {}
 
 void *tft_sprite::createSprite(int16_t w, int16_t h, uint8_t frames) {
     return TFT_eSprite::createSprite(w, h, frames);
@@ -170,3 +172,4 @@ int16_t tft_sprite::fontHeight() {
 TFT_eSprite *tft_sprite::nativeSprite() {
     return static_cast<TFT_eSprite *>(this);
 }
+EOF

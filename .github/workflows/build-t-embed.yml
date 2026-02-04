@@ -1,3 +1,4 @@
+[вставьте весь код выше начиная с "name: Build Bruce for T-Embed CC1101"]
 name: Build Bruce for T-Embed CC1101
 
 on:
@@ -33,17 +34,67 @@ jobs:
         python -m pip install --upgrade pip
         pip install platformio==$PLATFORMIO_VERSION
         
+    - name: Debug - Check SD.h file
+      run: |
+        echo "=== DEBUG: Checking SD.h file ==="
+        echo "Current directory: $(pwd)"
+        echo ""
+        echo "File lib/HAL/SD.h exists: $(if [ -f lib/HAL/SD.h ]; then echo 'YES'; else echo 'NO'; fi)"
+        echo ""
+        echo "Content around line 69:"
+        sed -n '65,75p' lib/HAL/SD.h
+        echo ""
+        echo "Searching for 'ssPin =' in entire project:"
+        grep -r "ssPin =" . --include="*.h" --include="*.cpp" 2>/dev/null || echo "Not found"
+        echo ""
+        echo "Git status of SD.h:"
+        git status lib/HAL/SD.h
+        echo ""
+        echo "=== DEBUG END ==="
+        
+    - name: Clear PlatformIO cache
+      run: |
+        echo "Clearing PlatformIO cache..."
+        pio system prune -f || true
+        rm -rf ~/.platformio
+        rm -rf .pio
+        rm -rf /tmp/platformio*
+        echo "Cache cleared"
+        
+    - name: Apply SS pin fix globally
+      run: |
+        echo "Applying global SS pin fix..."
+        # Добавляем определение SS в platformio.ini если его нет
+        if ! grep -q "build_flags.*SS" platformio.ini; then
+          echo "" >> platformio.ini
+          echo "# Fix for SS pin on T-Embed" >> platformio.ini
+          echo "build_flags = -DSS=-1" >> platformio.ini
+        fi
+        
     - name: Build for Lilygo T-Embed CC1101
       run: |
         echo "Starting build for T-Embed CC1101..."
-        pio run -e lilygo-t-embed-cc1101
+        echo "PlatformIO info:"
+        pio system info
+        echo ""
+        echo "Building with verbose output..."
+        pio run -e lilygo-t-embed-cc1101 -v
+        
+    - name: Check build success
+      if: success()
+      run: |
+        echo "✅ Build completed successfully!"
+        echo "Generated files:"
+        find .pio/build/lilygo-t-embed-cc1101 -name "*.bin" -type f -exec ls -la {} \;
         
     - name: List build artifacts
+      if: success()
       run: |
         echo "Build artifacts:"
         find .pio/build/lilygo-t-embed-cc1101 -name "*.bin" -type f | xargs ls -la
         
     - name: Upload firmware artifacts
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: firmware-t-embed-cc1101
@@ -53,6 +104,7 @@ jobs:
         retention-days: 30
         
     - name: Create combined firmware
+      if: success()
       run: |
         cd .pio/build/lilygo-t-embed-cc1101
         echo "Creating combined firmware..."
@@ -98,6 +150,7 @@ print(f'Size: {os.path.getsize(\"bruce-t-embed-combined.bin\")} bytes')
         "
         
     - name: Upload combined firmware
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: combined-firmware
@@ -105,6 +158,7 @@ print(f'Size: {os.path.getsize(\"bruce-t-embed-combined.bin\")} bytes')
         retention-days: 30
         
     - name: Create release info
+      if: success()
       run: |
         echo "=== Build Information ==="
         echo "Date: $(date)"
@@ -122,3 +176,17 @@ print(f'Size: {os.path.getsize(\"bruce-t-embed-combined.bin\")} bytes')
         echo "   - Statistics and progress"
         echo "2. Increased font size (2x scale)"
         echo "3. Custom build for T-Embed CC1101"
+        echo ""
+        echo "=== Build Log ==="
+        echo "SD.h fix: ssPin = -1 (was SS)"
+        echo "TFT_eSPI: Fixed method declarations"
+        
+    - name: Upload build logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs-failure
+        path: |
+          .pio/build/lilygo-t-embed-cc1101/*.log
+          .pio/**/*.log
+        retention-days: 7

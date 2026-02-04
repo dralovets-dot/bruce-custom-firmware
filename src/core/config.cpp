@@ -414,7 +414,7 @@ void BruceConfig::fromFile(bool checkFS) {
 
 void BruceConfig::saveFile() {
     FS *fs = &LittleFS;
-    JsonDocument jsonDoc = toJson();
+    auto jsonDoc = toJson();
 
     // Open file for writing
     File file = fs->open(filepath, FILE_WRITE);

@@ -1,0 +1,138 @@
+name: Build Bruce for T-Embed CC1101
+
+on:
+  push:
+    branches: [ "t-embed-custom-mod" ]
+  pull_request:
+    branches: [ "t-embed-custom-mod" ]
+  workflow_dispatch:  # Позволяет запускать вручную
+  schedule:
+    # Запускать каждый день в 12:00 UTC
+    - cron: '0 12 * * *'
+
+env:
+  PLATFORMIO_VERSION: "6.1.13"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+        
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        
+    - name: Install PlatformIO
+      run: |
+        python -m pip install --upgrade pip
+        pip install platformio==$PLATFORMIO_VERSION
+        
+    - name: Build for Lilygo T-Embed CC1101
+      run: |
+        echo "Starting build for T-Embed CC1101..."
+        pio run -e lilygo-t-embed-cc1101
+        
+    - name: List build artifacts
+      run: |
+        echo "Build artifacts:"
+        find .pio/build/lilygo-t-embed-cc1101 -name "*.bin" -type f | xargs ls -la
+        
+    - name: Upload firmware artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: firmware-t-embed-cc1101
+        path: |
+          .pio/build/lilygo-t-embed-cc1101/firmware.bin
+          .pio/build/lilygo-t-embed-cc1101/*.bin
+        retention-days: 30
+        
+    - name: Create combined firmware
+      run: |
+        cd .pio/build/lilygo-t-embed-cc1101
+        echo "Creating combined firmware..."
+        
+        # Проверяем существование файлов
+        if [ ! -f "bootloader.bin" ] || [ ! -f "partitions.bin" ] || [ ! -f "firmware.bin" ]; then
+          echo "Error: Required firmware files not found!"
+          ls -la *.bin
+          exit 1
+        fi
+        
+        # Создаем объединенный файл с помощью Python
+        python3 -c "
+import sys
+import os
+
+# Размеры в байтах
+BOOTLOADER_OFFSET = 0x1000      # 4096
+PARTITION_OFFSET = 0x8000       # 32768
+FIRMWARE_OFFSET = 0x10000       # 65536
+
+# Читаем файлы
+with open('bootloader.bin', 'rb') as f:
+    bootloader = f.read()
+with open('partitions.bin', 'rb') as f:
+    partitions = f.read()
+with open('firmware.bin', 'rb') as f:
+    firmware = f.read()
+
+# Определяем максимальный размер
+total_size = FIRMWARE_OFFSET + len(firmware)
+print(f'Bootloader: {len(bootloader)} bytes')
+print(f'Partitions: {len(partitions)} bytes')
+print(f'Firmware: {len(firmware)} bytes')
+print(f'Total size: {total_size} bytes')
+
+# Создаем объединенный файл
+with open('bruce-t-embed-combined.bin', 'wb') as f:
+    # Заполняем нулями до firmware
+    f.write(b'\\x00' * total_size)
+    
+    # Пишем bootloader
+    f.seek(BOOTLOADER_OFFSET)
+    f.write(bootloader)
+    
+    # Пишем partitions
+    f.seek(PARTITION_OFFSET)
+    f.write(partitions)
+    
+    # Пишем firmware
+    f.seek(FIRMWARE_OFFSET)
+    f.write(firmware)
+
+print('Combined firmware created: bruce-t-embed-combined.bin')
+print(f'Size: {os.path.getsize(\"bruce-t-embed-combined.bin\")} bytes')
+        "
+        
+    - name: Upload combined firmware
+      uses: actions/upload-artifact@v4
+      with:
+        name: combined-firmware
+        path: .pio/build/lilygo-t-embed-cc1101/bruce-t-embed-combined.bin
+        retention-days: 30
+        
+    - name: Create release info
+      run: |
+        echo "=== Build Information ==="
+        echo "Date: $(date)"
+        echo "Commit: $(git rev-parse HEAD)"
+        echo "Branch: $(git branch --show-current)"
+        echo "Device: Lilygo T-Embed CC1101"
+        echo "Firmware version: Custom $(date +%Y%m%d)"
+        echo ""
+        echo "=== Changes ==="
+        echo "1. Improved RF Bruteforce with:"
+        echo "   - Stop on successful key"
+        echo "   - Save keys to SD card"
+        echo "   - Attempt history"
+        echo "   - Dictionary attack"
+        echo "   - Statistics and progress"
+        echo "2. Increased font size (2x scale)"
+        echo "3. Custom build for T-Embed CC1101"

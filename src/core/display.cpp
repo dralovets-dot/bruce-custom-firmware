@@ -1,3 +1,4 @@
+#include "font_scale.h"
 #include "display.h"
 #include "core/wifi/webInterface.h" // for server
 #include "core/wifi/wg.h"           //for isConnectedWireguard to print wireguard lock

@@ -6,16 +6,23 @@
 #ifndef FONT_SCALE_H
 #define FONT_SCALE_H
 
+#include <TFT_eSPI.h>
+
+// Базовые размеры шрифтов (оригинальные значения из Bruce)
+#ifndef FM
+#define FM 2  // Medium font
+#endif
+
+#ifndef FP  
+#define FP 4  // Large font  
+#endif
+
 // Коэффициент увеличения шрифта
 // 1 = оригинал, 2 = в 2 раза больше
 #define FONT_SCALE_FACTOR 2
 
-// Функция для получения увеличенного размера шрифта
-static inline int getScaledTextSize(int baseSize) {
-    return baseSize * FONT_SCALE_FACTOR;
-}
-
-// Макрос для удобного использования
-#define SET_SCALED_TEXT_SIZE(size) tft.setTextSize(getScaledTextSize(size))
+// Масштабированные версии
+#define FM_SCALED (FM * FONT_SCALE_FACTOR)
+#define FP_SCALED (FP * FONT_SCALE_FACTOR)
 
 #endif // FONT_SCALE_H

@@ -1,4 +1,3 @@
-[вставьте весь код выше начиная с "name: Build Bruce for T-Embed CC1101"]
 name: Build Bruce for T-Embed CC1101
 
 on:
@@ -34,167 +33,30 @@ jobs:
         python -m pip install --upgrade pip
         pip install platformio==$PLATFORMIO_VERSION
         
-    - name: Debug - Check SD.h file
+    - name: Force clean PlatformIO cache
       run: |
-        echo "=== DEBUG: Checking SD.h file ==="
-        echo "Current directory: $(pwd)"
-        echo ""
-        echo "File lib/HAL/SD.h exists: $(if [ -f lib/HAL/SD.h ]; then echo 'YES'; else echo 'NO'; fi)"
-        echo ""
-        echo "Content around line 69:"
-        sed -n '65,75p' lib/HAL/SD.h
-        echo ""
-        echo "Searching for 'ssPin =' in entire project:"
-        grep -r "ssPin =" . --include="*.h" --include="*.cpp" 2>/dev/null || echo "Not found"
-        echo ""
-        echo "Git status of SD.h:"
-        git status lib/HAL/SD.h
-        echo ""
-        echo "=== DEBUG END ==="
-        
-    - name: Clear PlatformIO cache
-      run: |
-        echo "Clearing PlatformIO cache..."
-        pio system prune -f || true
+        echo "Cleaning all PlatformIO cache..."
         rm -rf ~/.platformio
         rm -rf .pio
         rm -rf /tmp/platformio*
-        echo "Cache cleared"
         
-    - name: Apply SS pin fix globally
+    - name: Install specific Arduino-ESP32 framework
       run: |
-        echo "Applying global SS pin fix..."
-        # Добавляем определение SS в platformio.ini если его нет
-        if ! grep -q "build_flags.*SS" platformio.ini; then
-          echo "" >> platformio.ini
-          echo "# Fix for SS pin on T-Embed" >> platformio.ini
-          echo "build_flags = -DSS=-1" >> platformio.ini
-        fi
+        echo "Installing Arduino-ESP32 framework 2.0.14..."
+        wget -q https://github.com/espressif/arduino-esp32/releases/download/2.0.14/esp32-2.0.14.zip
+        mkdir -p ~/.platformio/packages/framework-arduinoespressif32
+        unzip -q esp32-2.0.14.zip -d ~/.platformio/packages/framework-arduinoespressif32
+        echo "Framework installed successfully"
         
-    - name: Build for Lilygo T-Embed CC1101
+    - name: Build for T-Embed CC1101
       run: |
-        echo "Starting build for T-Embed CC1101..."
-        echo "PlatformIO info:"
-        pio system info
-        echo ""
-        echo "Building with verbose output..."
+        echo "Starting build..."
         pio run -e lilygo-t-embed-cc1101 -v
-        
-    - name: Check build success
-      if: success()
-      run: |
-        echo "✅ Build completed successfully!"
-        echo "Generated files:"
-        find .pio/build/lilygo-t-embed-cc1101 -name "*.bin" -type f -exec ls -la {} \;
-        
-    - name: List build artifacts
-      if: success()
-      run: |
-        echo "Build artifacts:"
-        find .pio/build/lilygo-t-embed-cc1101 -name "*.bin" -type f | xargs ls -la
         
     - name: Upload firmware artifacts
       if: success()
       uses: actions/upload-artifact@v4
       with:
         name: firmware-t-embed-cc1101
-        path: |
-          .pio/build/lilygo-t-embed-cc1101/firmware.bin
-          .pio/build/lilygo-t-embed-cc1101/*.bin
+        path: .pio/build/lilygo-t-embed-cc1101/*.bin
         retention-days: 30
-        
-    - name: Create combined firmware
-      if: success()
-      run: |
-        cd .pio/build/lilygo-t-embed-cc1101
-        echo "Creating combined firmware..."
-        
-        if [ ! -f "bootloader.bin" ] || [ ! -f "partitions.bin" ] || [ ! -f "firmware.bin" ]; then
-          echo "Error: Required firmware files not found!"
-          ls -la *.bin
-          exit 1
-        fi
-        
-        python3 -c "
-import sys
-import os
-
-BOOTLOADER_OFFSET = 0x1000
-PARTITION_OFFSET = 0x8000
-FIRMWARE_OFFSET = 0x10000
-
-with open('bootloader.bin', 'rb') as f:
-    bootloader = f.read()
-with open('partitions.bin', 'rb') as f:
-    partitions = f.read()
-with open('firmware.bin', 'rb') as f:
-    firmware = f.read()
-
-total_size = FIRMWARE_OFFSET + len(firmware)
-print(f'Bootloader: {len(bootloader)} bytes')
-print(f'Partitions: {len(partitions)} bytes')
-print(f'Firmware: {len(firmware)} bytes')
-print(f'Total size: {total_size} bytes')
-
-with open('bruce-t-embed-combined.bin', 'wb') as f:
-    f.write(b'\\x00' * total_size)
-    f.seek(BOOTLOADER_OFFSET)
-    f.write(bootloader)
-    f.seek(PARTITION_OFFSET)
-    f.write(partitions)
-    f.seek(FIRMWARE_OFFSET)
-    f.write(firmware)
-
-print('Combined firmware created: bruce-t-embed-combined.bin')
-print(f'Size: {os.path.getsize(\"bruce-t-embed-combined.bin\")} bytes')
-        "
-        
-    - name: Upload combined firmware
-      if: success()
-      uses: actions/upload-artifact@v4
-      with:
-        name: combined-firmware
-        path: .pio/build/lilygo-t-embed-cc1101/bruce-t-embed-combined.bin
-        retention-days: 30
-        
-    - name: Create release info
-      if: success()
-      run: |
-        echo "=== Build Information ==="
-        echo "Date: $(date)"
-        echo "Commit: $(git rev-parse HEAD)"
-        echo "Branch: $(git branch --show-current)"
-        echo "Device: Lilygo T-Embed CC1101"
-        echo "Firmware version: Custom $(date +%Y%m%d)"
-        echo ""
-        echo "=== Changes ==="
-        echo "1. Improved RF Bruteforce with:"
-        echo "   - Stop on successful key"
-        echo "   - Save keys to SD card"
-        echo "   - Attempt history"
-        echo "   - Dictionary attack"
-        echo "   - Statistics and progress"
-        echo "2. Increased font size (2x scale)"
-        echo "3. Custom build for T-Embed CC1101"
-        echo ""
-        echo "=== Build Log ==="
-        echo "SD.h fix: ssPin = -1 (was SS)"
-        echo "TFT_eSPI: Fixed method declarations"
-        
-    - name: Upload build logs on failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-logs-failure
-        path: |
-          .pio/build/lilygo-t-embed-cc1101/*.log
-          .pio/**/*.log
-        retention-days: 7
-
-    - name: Force install Arduino ESP32 framework
-      run: |
-        echo "Installing specific Arduino-ESP32 framework..."
-        wget https://github.com/espressif/arduino-esp32/releases/download/2.0.14/esp32-2.0.14.zip
-        mkdir -p ~/.platformio/packages/framework-arduinoespressif32
-        unzip -q esp32-2.0.14.zip -d ~/.platformio/packages/framework-arduinoespressif32
-        echo "Framework installed"

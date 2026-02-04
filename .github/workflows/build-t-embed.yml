@@ -22,24 +22,18 @@ jobs:
         
     - name: Install PlatformIO
       run: |
-        pip install platformio==6.1.13
+        pip install platformio
         
-    - name: Nuclear clean
+    - name: Clean PlatformIO cache
       run: |
+        pio system prune -f || true
         rm -rf ~/.platformio
         rm -rf .pio
-        sudo rm -rf /tmp/platformio*
-        
-    - name: Install ESP32 framework 2.0.14
-      run: |
-        wget -q https://github.com/espressif/arduino-esp32/releases/download/2.0.14/esp32-2.0.14.zip
-        mkdir -p ~/.platformio/packages/framework-arduinoespressif32
-        unzip -q esp32-2.0.14.zip -d ~/.platformio/packages/
-        rm esp32-2.0.14.zip
         
     - name: Build T-Embed
       run: |
-        pio run -e lilygo-t-embed-cc1101 || pio run -e lilygo-t-embed-cc1101 -v
+        echo "Starting build..."
+        pio run -e lilygo-t-embed-cc1101
         
     - name: Upload firmware
       if: success()
@@ -47,3 +41,4 @@ jobs:
       with:
         name: bruce-t-embed
         path: .pio/build/lilygo-t-embed-cc1101/*.bin
+        retention-days: 30

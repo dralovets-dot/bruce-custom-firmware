@@ -1,11 +1,12 @@
-#define HAS_BRUCETHEME
 #ifndef CONFIG_H
 #define CONFIG_H
 
 #include <ArduinoJson.h>
 #include <vector>
 #include <string>
-#include "theme.h"  // Добавляем theme.h для BruceTheme
+
+// Временно отключаем наследование от BruceTheme
+// #include "theme.h"
 
 struct QRCode {
     std::string name;
@@ -16,20 +17,12 @@ class BruceConfig {
 public:
     static constexpr const char* CONFIG_FILE = "/config.json";
     
-    // Наследуемся от BruceTheme если он существует, иначе создаём свою структуру
-    #ifdef HAS_BRUCETHEME
-    : public BruceTheme 
-    #endif
-    {
-    
-    // Настройки темы (если BruceTheme существует, они там, иначе здесь)
-    #ifndef HAS_BRUCETHEME
+    // Настройки темы (временно здесь, пока не разберёмся с BruceTheme)
     std::string theme = "default";
     uint32_t primaryColor = 0x0000FF;
     uint32_t secondaryColor = 0xFF0000;
     uint32_t backgroundColor = 0x000000;
     uint32_t textColor = 0xFFFFFF;
-    #endif
     
     // Общие настройки
     uint8_t brightness = 255;
@@ -58,10 +51,6 @@ public:
     void fromFile(bool resetOnError = true);
     void saveFile();
     void resetToDefaults();
-    
-    // Загрузка/сохранение
-    void load() { fromFile(); }
-    void save() { saveFile(); }
 };
 
 extern BruceConfig config;

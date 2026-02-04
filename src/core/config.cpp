@@ -106,7 +106,7 @@ void BruceConfig::fromFile(bool checkFS) {
     }
 
     // Deserialize the JSON document
-    JsonDocument jsonDoc;
+    DynamicJsonDocument jsonDoc(1024);
     if (deserializeJson(jsonDoc, file)) {
         Serial.println("Failed to read config file, using default configuration");
         return;
@@ -414,7 +414,8 @@ void BruceConfig::fromFile(bool checkFS) {
 
 void BruceConfig::saveFile() {
     FS *fs = &LittleFS;
-    auto jsonDoc = toJson();
+    DynamicJsonDocument jsonDoc(2048);
+    toJson(jsonDoc);
 
     // Open file for writing
     File file = fs->open(filepath, FILE_WRITE);

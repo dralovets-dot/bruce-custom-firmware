@@ -21,7 +21,9 @@
 #if __has_include("esp32-hal-periman.h")
     // Совместимость с ESP32
 #if __has_include("esp32-hal-periman.h")
+    #if __has_include("esp32-hal-periman.h")
     #include "esp32-hal-periman.h"
+#endif
 #endif
 #endif
 

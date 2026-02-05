@@ -1,16 +1,8 @@
-#include <Arduino.h>
+#include <ArduinoJson.h>
 #include "config.h"
-
-void setup() {
-    Serial.begin(115200);
-    delay(1000);
-    Serial.println("=== Bruce Firmware ===");
-    
+void setup() { 
+    Serial.begin(115200); 
+    Serial.println("OK"); 
     DynamicJsonDocument doc = loadConfig();
-    Serial.println("Config loaded");
 }
-
-void loop() {
-    delay(5000);
-    Serial.println("Working...");
-}
+void loop() { delay(1000); Serial.println("."); }

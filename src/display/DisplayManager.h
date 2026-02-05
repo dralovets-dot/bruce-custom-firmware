@@ -22,7 +22,7 @@ public:
         uint32_t backgroundColor;
         uint32_t textColor;
         uint32_t highlightColor;
-        uint32 buttonColor;
+        uint32_t buttonColor;
         uint32_t borderColor;
         uint8_t brightness;
         bool inverted;

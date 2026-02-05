@@ -168,7 +168,7 @@ void checkShortcutPress() {
     keyStroke key = _getKeyPress();
 
     // parse shortcutsJson and check the keys
-    for (JsonPair kv : shortcutsJson.as<JsonObject>()) {
+    for (JsonPair kv : shortcutsJson.is<JsonObject>() ? &.as<JsonObject>() : JsonObject()) {
         const char *shortcut_key = kv.key().c_str();
         const char *shortcut_value = kv.value().as<const char *>();
 

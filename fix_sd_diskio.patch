@@ -1,0 +1,13 @@
+--- a/src/HAL/sd_card/sd_diskio.cpp
++++ b/src/HAL/sd_card/sd_diskio.cpp
+@@ -1,5 +1,9 @@
+ #include "SD_MMC.h"
+-#include "esp32-hal-periman.h"
++
++// Заглушка для совместимости со старыми версиями
++#if __has_include("esp32-hal-periman.h")
++    #include "esp32-hal-periman.h"
++#endif
+ 
+ #include "ff.h"
+ #include "diskio.h"

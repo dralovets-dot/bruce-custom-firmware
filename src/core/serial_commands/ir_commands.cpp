@@ -169,7 +169,7 @@ uint32_t irSendCallback(cmd *c) {
         return false;
     }
 
-    JsonObject args_json = jsonDoc.as<JsonObject>(); // root
+    JsonObject args_json = jsonDoc.is<JsonObject>() ? &.as<JsonObject>() : JsonObject(); // root
 
     uint16_t bits = 32;         // defaults to 32 bits
     String protocolStr = "nec"; // defaults to NEC protocol

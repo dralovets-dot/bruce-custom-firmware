@@ -61,7 +61,7 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath, bool overwriteConfigSett
         {"lora",        &theme.lora,        theme.paths.lora       }
     };
 
-    JsonObject _th = jsonDoc.as<JsonObject>();
+    JsonObject _th = jsonDoc.is<JsonObject>() ? &.as<JsonObject>() : JsonObject();
     for (auto &entry : entries) {
         if (!_th[entry.key].isNull()) {
             String path = baseThemePath + _th[entry.key].as<String>();

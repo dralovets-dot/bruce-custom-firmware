@@ -2,7 +2,7 @@
 #define __SERIAL_CLI_H__
 
 #include <Arduino.h>
-#include <SimpleCLI.h>
+#include "SimpleCLI.h"
 
 class SerialCli {
 public:

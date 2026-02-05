@@ -1,9 +1,31 @@
 name: Build
-on: [push]
+
+on: [push, pull_request]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
     - uses: actions/checkout@v4
-    - run: pip install platformio
-    - run: pio run
+    
+    - name: Install PlatformIO
+      run: |
+        python -m pip install --upgrade pip
+        pip install platformio
+        pio --version
+        
+    - name: Build Firmware
+      run: |
+        pio platform install espressif32@6.5.0
+        pio lib -g install
+        pio run -e lilygo-t-embed-cc1101 || {
+          echo "Build failed"
+          exit 1
+        }
+        
+    - name: Check Build
+      if: success()
+      run: |
+        echo "✅ Build successful!"
+        find .pio/build -name "*.bin" -o -name "*.elf" | xargs ls -la 2>/dev/null || true

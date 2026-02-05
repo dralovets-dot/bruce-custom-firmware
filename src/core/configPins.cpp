@@ -18,7 +18,7 @@ void BruceConfigPins::fromJson(JsonObject obj) {
 
     if (obj[mac].isNull()) return saveFile();
 
-    JsonObject root = obj[mac].is<JsonObject>() ? .as<JsonObject>() : JsonObject();
+    JsonObject root = obj[mac].is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject();
 
     if (!root["rot"].isNull()) {
         rotation = root["rot"].as<int>();
@@ -115,7 +115,7 @@ void BruceConfigPins::fromJson(JsonObject obj) {
 
     if (!root["CC1101_Pins"].isNull()) {
         SPIPins def = CC1101_bus;
-        CC1101_bus.fromJson(root["CC1101_Pins"].is<JsonObject>() ? .as<JsonObject>() : JsonObject());
+        CC1101_bus.fromJson(root["CC1101_Pins"].is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject());
         if (CC1101_bus.sck == GPIO_NUM_NC && def.sck != GPIO_NUM_NC) {
             CC1101_bus = def;
             count++;
@@ -127,7 +127,7 @@ void BruceConfigPins::fromJson(JsonObject obj) {
 
     if (!root["NRF24_Pins"].isNull()) {
         SPIPins def = NRF24_bus;
-        NRF24_bus.fromJson(root["NRF24_Pins"].is<JsonObject>() ? .as<JsonObject>() : JsonObject());
+        NRF24_bus.fromJson(root["NRF24_Pins"].is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject());
         if (NRF24_bus.sck == GPIO_NUM_NC && def.sck != GPIO_NUM_NC) {
             NRF24_bus = def;
             count++;
@@ -139,7 +139,7 @@ void BruceConfigPins::fromJson(JsonObject obj) {
 
     if (!root["SDCard_Pins"].isNull()) {
         SPIPins def = SDCARD_bus;
-        SDCARD_bus.fromJson(root["SDCard_Pins"].is<JsonObject>() ? .as<JsonObject>() : JsonObject());
+        SDCARD_bus.fromJson(root["SDCard_Pins"].is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject());
         if (SDCARD_bus.sck == GPIO_NUM_NC && def.sck != GPIO_NUM_NC) {
             SDCARD_bus = def;
             count++;
@@ -150,7 +150,7 @@ void BruceConfigPins::fromJson(JsonObject obj) {
     }
 #if !defined(LITE_VERSION)
     if (!root["W5500_Pins"].isNull()) {
-        W5500_bus.fromJson(root["W5500_Pins"].is<JsonObject>() ? .as<JsonObject>() : JsonObject());
+        W5500_bus.fromJson(root["W5500_Pins"].is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject());
     } else {
         count++;
         log_e("Fail");
@@ -158,7 +158,7 @@ void BruceConfigPins::fromJson(JsonObject obj) {
 
     if (!root["LoRa_Pins"].isNull()) {
         SPIPins def = LoRa_bus;
-        LoRa_bus.fromJson(root["LoRa_Pins"].is<JsonObject>() ? .as<JsonObject>() : JsonObject());
+        LoRa_bus.fromJson(root["LoRa_Pins"].is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject());
         if (LoRa_bus.sck == GPIO_NUM_NC && def.sck != GPIO_NUM_NC) {
             LoRa_bus = def;
             count++;
@@ -169,25 +169,25 @@ void BruceConfigPins::fromJson(JsonObject obj) {
     }
 #endif
     // if (!root["sys_i2c"].isNull()) {
-    //     sys_i2c.fromJson(root["sys_i2c"].is<JsonObject>() ? .as<JsonObject>() : JsonObject());
+    //     sys_i2c.fromJson(root["sys_i2c"].is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject());
     // } else {
     //     count++;
     //     log_e("Fail");
     // }
     if (!root["i2c_bus"].isNull()) {
-        i2c_bus.fromJson(root["i2c_bus"].is<JsonObject>() ? .as<JsonObject>() : JsonObject());
+        i2c_bus.fromJson(root["i2c_bus"].is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject());
     } else {
         count++;
         log_e("Fail");
     }
     if (!root["uart_bus"].isNull()) {
-        uart_bus.fromJson(root["uart_bus"].is<JsonObject>() ? .as<JsonObject>() : JsonObject());
+        uart_bus.fromJson(root["uart_bus"].is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject());
     } else {
         count++;
         log_e("Fail");
     }
     if (!root["GPS_bus"].isNull()) {
-        gps_bus.fromJson(root["GPS_bus"].is<JsonObject>() ? .as<JsonObject>() : JsonObject());
+        gps_bus.fromJson(root["GPS_bus"].is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject());
     } else {
         count++;
         log_e("Fail");
@@ -230,7 +230,7 @@ void BruceConfigPins::toJson(JsonObject obj) const {
     JsonObject _LoRa = root["LoRa_Pins"].to<JsonObject>();
     LoRa_bus.toJson(_LoRa);
 #endif
-    // JsonObject _si2c = root["sys_i2c"].is<JsonObject>() ? .as<JsonObject>() : JsonObject();
+    // JsonObject _si2c = root["sys_i2c"].is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject();
     // sys_i2c.toJson(_si2c);
     JsonObject _di2c = root["i2c_bus"].to<JsonObject>();
     i2c_bus.toJson(_di2c);
@@ -271,7 +271,7 @@ void BruceConfigPins::fromFile(bool checkFS) {
     DynamicJsonDocument jsonDoc(1024);
     loadFile(jsonDoc, checkFS);
 
-    if (!jsonDoc.isNull()) fromJson(jsonDoc.is<JsonObject>() ? .as<JsonObject>() : JsonObject());
+    if (!jsonDoc.isNull()) fromJson(jsonDoc.is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject());
     jsonDoc.clear();
 }
 
@@ -307,7 +307,7 @@ void BruceConfigPins::saveFile() {
     if (jsonDoc.isNull()) return createFile();
 
     jsonDoc.remove(getMacAddress());
-    toJson(jsonDoc.is<JsonObject>() ? .as<JsonObject>() : JsonObject());
+    toJson(jsonDoc.is<JsonObject>() ? jsonDoc.as<JsonObject>() : JsonObject());
 
     // Open file for writing
     FS *fs = &LittleFS;

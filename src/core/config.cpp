@@ -48,7 +48,7 @@ void BruceConfig::fromJson(const DynamicJsonDocument& doc) {
     if (doc.isNull()) return;
     
     // Получаем JsonObject безопасно
-    JsonObject root = doc.as<JsonObject>();
+    JsonObject root = doc.is<JsonObject>() ? &.as<JsonObject>() : JsonObject();
     if (root.isNull()) return;
     
     // Настройки темы

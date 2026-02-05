@@ -17,7 +17,13 @@
 
 #include "sd_diskio2.h"
 #include "esp_system.h"
-#include "esp32-hal-periman.h"
+// Совместимость с разными версиями ESP32
+#if __has_include("esp32-hal-periman.h")
+    // Совместимость с ESP32
+#if __has_include("esp32-hal-periman.h")
+    #include "esp32-hal-periman.h"
+#endif
+#endif
 
 extern "C" {
 #include "ff.h"

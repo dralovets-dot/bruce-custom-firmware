@@ -9,7 +9,13 @@
 #include "diskio_sdmmc.h"
 #include "driver/sdmmc_defs.h"
 #include "driver/sdmmc_host.h"
-#include "esp32-hal-periman.h"
+// Совместимость с разными версиями ESP32
+#if __has_include("esp32-hal-periman.h")
+    // Совместимость с ESP32
+#if __has_include("esp32-hal-periman.h")
+    #include "esp32-hal-periman.h"
+#endif
+#endif
 #include "esp_vfs_fat.h"
 #include "ff.h"
 #include "sdmmc_cmd.h"

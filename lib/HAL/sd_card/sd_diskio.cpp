@@ -22,7 +22,9 @@
     // Совместимость с ESP32
 #if __has_include("esp32-hal-periman.h")
     #if __has_include("esp32-hal-periman.h")
-    #include "esp32-hal-periman.h"
+    #if __has_include("esp32-hal-periman.h")
+#include "esp32-hal-periman.h"
+#endif
 #endif
 #endif
 #endif
@@ -717,7 +719,7 @@ uint8_t sdcard_init(uint8_t cs, SPIClass *spi, int hz) {
 
   pinMode(card->ssPin, OUTPUT);
   digitalWrite(card->ssPin, HIGH);
-  perimanSetPinBusExtraType(card->ssPin, "SD_SS");
+    //   perimanSetPinBusExtraType(card->ssPin, "SD_SS"); // Commented for compatibility
 
   s_cards[pdrv] = card;
 
@@ -774,7 +776,7 @@ bool sdcard_mount(uint8_t pdrv, const char *path, uint8_t max_files, bool format
         return false;
       }
       //FRESULT f_mkfs (const TCHAR* path, const MKFS_PARM* opt, void* work, UINT len);
-      const MKFS_PARM opt = {(BYTE)FM_ANY, 0, 0, 0, 0};
+    const MKFS_PARM opt = {(BYTE)FM_ANY, 0, 0, 0}; // Updated for FatFS
       res = f_mkfs(drv, &opt, work, sizeof(BYTE) * FF_MAX_SS);
       free(work);
       if (res != FR_OK) {

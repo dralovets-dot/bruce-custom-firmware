@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bruce RF - Bruteforce Control</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #764ba2;
+            font-size: 1.2em;
+        }
+        .status-bar {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid;
+            transition: all 0.3s;
+        }
+        .status-idle { border-left-color: #6c757d; }
+        .status-running { border-left-color: #28a745; }
+        .status-paused { border-left-color: #ffc107; }
+        .status-found { border-left-color: #dc3545; }
+        .status-rewinding { border-left-color: #17a2b8; }
+        .status-verifying { border-left-color: #6610f2; }
+        
+        .status-info {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .status-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        .status-label {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        .status-value {
+            font-size: 1.1em;
+            color: #212529;
+        }
+        .progress-container {
+            margin: 20px 0;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .control-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-start { background: #28a745; color: white; }
+        .btn-stop { background: #dc3545; color: white; }
+        .btn-pause { background: #ffc107; color: #212529; }
+        .btn-resume { background: #17a2b8; color: white; }
+        .btn-rewind { background: #6f42c1; color: white; }
+        .btn-verify { background: #fd7e14; color: white; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .settings-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .logs {
+            background: #212529;
+            color: #20c997;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 3px 0;
+            border-bottom: 1px solid #343a40;
+        }
+        .log-time {
+            color: #6c757d;
+        }
+        .log-info { color: #20c997; }
+        .log-success { color: #28a745; }
+        .log-warning { color: #ffc107; }
+        .log-error { color: #dc3545; }
+        
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .control-grid { grid-template-columns: 1fr; }
+            .form-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Bruce RF Bruteforce Controller</h1>
+            <div class="subtitle">Advanced key cracking with real-time control</div>
+        </header>
+        
+        <div id="statusBar" class="status-bar status-idle">
+            <div class="status-info">
+                <div class="status-item">
+                    <div class="status-label">Status</div>
+                    <div id="statusValue" class="status-value">IDLE</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Current Key</div>
+                    <div id="currentKey" class="status-value">0x00000000</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Found Key</div>
+                    <div id="foundKey" class="status-value">None</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Attempts</div>
+                    <div id="attemptsCount" class="status-value">0</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Speed</div>
+                    <div id="speedValue" class="status-value">0 keys/s</div>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="status-label">Progress</div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%">0%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <h2 style="margin-bottom: 15px; color: #495057;">Control Panel</h2>
+            <div class="control-grid">
+                <button id="btnStart" class="btn btn-start" onclick="sendCommand('start')">
+                    ▶️ Start Bruteforce
+                </button>
+                <button id="btnPause" class="btn btn-pause" onclick="sendCommand('pause')" disabled>
+                    ⏸️ Pause
+                </button>
+                <button id="btnResume" class="btn btn-resume" onclick="sendCommand('resume')" disabled>
+                    ⏯️ Resume
+                </button>
+                <button id="btnStop" class="btn btn-stop" onclick="sendCommand('stop')" disabled>
+                    ⏹️ Stop
+                </button>
+                <button id="btnRewind" class="btn btn-rewind" onclick="sendCommand('rewind')">
+                    ⏪ Rewind to Start
+                </button>
+                <button id="btnVerify" class="btn btn-verify" onclick="sendCommand('verify')" disabled>
+                    🔍 Verify Key
+                </button>
+            </div>
+        </div>
+        
+        <div class="settings-panel">
+            <h2 style="margin-bottom: 15px; color: #495057;">Settings</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="startKey">Start Key (Hex)</label>
+                    <input type="text" id="startKey" value="0x00000000" pattern="0x[0-9A-Fa-f]{1,8}">
+                </div>
+                <div class="form-group">
+                    <label for="endKey">End Key (Hex)</label>
+                    <input type="text" id="endKey" value="0x0000FFFF" pattern="0x[0-9A-Fa-f]{1,8}">
+                </div>
+                <div class="form-group">
+                    <label for="speed">Speed (keys/sec)</label>
+                    <input type="number" id="speed" value="50" min="1" max="1000">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="protocol">RF Protocol</label>
+                    <select id="protocol">
+                        <option value="0">Keeloq</option>
+                        <option value="1">MiLight</option>
+                        <option value="2">Mercedes</option>
+                        <option value="3">Honda</option>
+                        <option value="4">Toyota</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="autoRewind">Auto Rewind</label>
+                    <select id="autoRewind">
+                        <option value="true">Enabled</option>
+                        <option value="false">Disabled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="verifyKey">Verify Found Key</label>
+                    <select id="verifyKey">
+                        <option value="true">Enabled</option>
+                        <option value="false">Disabled</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-start" style="margin-top: 10px;" onclick="updateSettings()">
+                ⚙️ Update Settings
+            </button>
+        </div>
+        
+        <div class="logs">
+            <div id="logContent">
+                <div class="log-entry">
+                    <span class="log-time">[00:00:00]</span>
+                    <span class="log-info">Web interface connected</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let ws;
+        let lastUpdate = 0;
+        let keysPerSecond = 0;
+        let keyCounts = [];
+        const maxLogEntries = 50;
+        
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = () => {
+                addLog('WebSocket connected', 'success');
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleWebSocketMessage(data);
+            };
+            
+            ws.onclose = () => {
+                addLog('WebSocket disconnected', 'error');
+                setTimeout(connectWebSocket, 3000);
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                addLog('WebSocket error', 'error');
+            };
+        }
+        
+        function handleWebSocketMessage(data) {
+            if (data.type === 'status') {
+                updateStatus(data);
+            } else if (data.type === 'log') {
+                addLog(data.message, data.level);
+            }
+        }
+        
+        function updateStatus(status) {
+            // Update status display
+            document.getElementById('statusValue').textContent = status.state;
+            document.getElementById('currentKey').textContent = `0x${status.currentKey.toString(16).toUpperCase().padStart(8, '0')}`;
+            document.getElementById('foundKey').textContent = status.foundKey ? 
+                `0x${status.foundKey.toString(16).toUpperCase().padStart(8, '0')}` : 'None';
+            document.getElementById('attemptsCount').textContent = status.attempts.toLocaleString();
+            
+            // Calculate speed
+            const now = Date.now();
+            if (lastUpdate > 0) {
+                const elapsed = (now - lastUpdate) / 1000;
+                keyCounts.push({time: now, count: status.attempts});
+                
+                // Keep only last 5 seconds of data
+                const fiveSecondsAgo = now - 5000;
+                keyCounts = keyCounts.filter(item => item.time > fiveSecondsAgo);
+                
+                if (keyCounts.length > 1) {
+                    const oldest = keyCounts[0];
+                    const newest = keyCounts[keyCounts.length - 1];
+                    const totalKeys = newest.count - oldest.count;
+                    const totalTime = (newest.time - oldest.time) / 1000;
+                    keysPerSecond = totalTime > 0 ? Math.round(totalKeys / totalTime) : 0;
+                }
+            }
+            lastUpdate = now;
+            
+            document.getElementById('speedValue').textContent = `${keysPerSecond} keys/s`;
+            
+            // Update progress
+            const progress = status.progress || 0;
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = `${progress}%`;
+            progressFill.textContent = `${progress.toFixed(2)}%`;
+            
+            // Update status bar color
+            const statusBar = document.getElementById('statusBar');
+            statusBar.className = 'status-bar';
+            statusBar.classList.add(`status-${status.state.toLowerCase()}`);
+            
+            // Update button states
+            updateButtonStates(status.state);
+        }
+        
+        function updateButtonStates(state) {
+            const btnStart = document.getElementById('btnStart');
+            const btnPause = document.getElementById('btnPause');
+            const btnResume = document.getElementById('btnResume');
+            const btnStop = document.getElementById('btnStop');
+            const btnVerify = document.getElementById('btnVerify');
+            
+            // Reset all
+            btnStart.disabled = false;
+            btnPause.disabled = false;
+            btnResume.disabled = false;
+            btnStop.disabled = false;
+            btnVerify.disabled = false;
+            
+            switch(state.toLowerCase()) {
+                case 'idle':
+                case 'stopped':
+                    btnStart.disabled = false;
+                    btnPause.disabled = true;
+                    btnResume.disabled = true;
+                    btnStop.disabled = true;
+                    btnVerify.disabled = true;
+                    break;
+                case 'running':
+                    btnStart.disabled = true;
+                    btnPause.disabled = false;
+                    btnResume.disabled = true;
+                    btnStop.disabled = false;
+                    btnVerify.disabled = true;
+                    break;
+                case 'paused':
+                    btnStart.disabled = true;
+                    btnPause.disabled = true;
+                    btnResume.disabled = false;
+                    btnStop.disabled = false;
+                    btnVerify.disabled = true;
+                    break;
+                case 'key_found':
+                    btnStart.disabled = true;
+                    btnPause.disabled = true;
+                    btnResume.disabled = true;
+                    btnStop.disabled = false;
+                    btnVerify.disabled = false;
+                    break;
+                case 'rewinding':
+                case 'verifying':
+                    btnStart.disabled = true;
+                    btnPause.disabled = true;
+                    btnResume.disabled = true;
+                    btnStop.disabled = false;
+                    btnVerify.disabled = true;
+                    break;
+            }
+        }
+        
+        function sendCommand(command) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({command: command}));
+                addLog(`Sent command: ${command}`, 'info');
+            } else {
+                addLog('WebSocket not connected', 'error');
+            }
+        }
+        
+        function updateSettings() {
+            const settings = {
+                startKey: parseInt(document.getElementById('startKey').value, 16),
+                endKey: parseInt(document.getElementById('endKey').value, 16),
+                speed: parseInt(document.getElementById('speed').value),
+                protocol: document.getElementById('protocol').value,
+                autoRewind: document.getElementById('autoRewind').value === 'true',
+                verifyKey: document.getElementById('verifyKey').value === 'true'
+            };
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({command: 'update_settings', settings: settings}));
+                addLog('Settings updated', 'success');
+            }
+        }
+        
+        function addLog(message, level = 'info') {
+            const logContent = document.getElementById('logContent');
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <span class="log-time">[${timeStr}]</span>
+                <span class="log-${level}">${message}</span>
+            `;
+            
+            logContent.appendChild(logEntry);
+            
+            // Limit log entries
+            while (logContent.children.length > maxLogEntries) {
+                logContent.removeChild(logContent.firstChild);
+            }
+            
+            // Auto-scroll to bottom
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+        
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            connectWebSocket();
+            addLog('Bruteforce control interface loaded', 'info');
+            
+            // Load saved settings from localStorage
+            const savedStartKey = localStorage.getItem('startKey');
+            const savedEndKey = localStorage.getItem('endKey');
+            const savedSpeed = localStorage.getItem('speed');
+            
+            if (savedStartKey) document.getElementById('startKey').value = savedStartKey;
+            if (savedEndKey) document.getElementById('endKey').value = savedEndKey;
+            if (savedSpeed) document.getElementById('speed').value = savedSpeed;
+            
+            // Save settings on change
+            document.getElementById('startKey').addEventListener('change', function() {
+                localStorage.setItem('startKey', this.value);
+            });
+            document.getElementById('endKey').addEventListener('change', function() {
+                localStorage.setItem('endKey', this.value);
+            });
+            document.getElementById('speed').addEventListener('change', function() {
+                localStorage.setItem('speed', this.value);
+            });
+        });
+    </script>
+</body>
+</html>

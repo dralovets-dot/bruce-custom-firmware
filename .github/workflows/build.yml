@@ -1,34 +1,8 @@
 name: Build
-
-on:
-  push:
-    branches: [ fix-compilation-errors ]
-  workflow_dispatch:  # Позволяет запускать вручную
-
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install PlatformIO
-      run: |
-        python -m pip install --upgrade pip
-        pip install platformio
-        pio --version
-        
-    - name: Build
-      run: |
-        echo "Installing ESP32 platform..."
-        pio platform install espressif32@6.5.0
-        echo "Installing libraries..."
-        pio lib install ArduinoJson@6.21.3
-        echo "Building..."
-        pio run -e lilygo-t-embed-cc1101
-        
-    - name: Check build
-      if: success()
-      run: |
-        echo "✅ Build successful!"
-        find .pio/build -name "*.bin" | xargs ls -la 2>/dev/null || echo "No binaries found"
+      - uses: actions/checkout@v4
+      - run: pip install platformio && pio run

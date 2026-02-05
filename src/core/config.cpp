@@ -1,42 +1,43 @@
 #include "config.h"
 #include <ArduinoJson.h>
 
-// Минимальные безопасные реализации
-
 void BruceConfig::fromJson(const DynamicJsonDocument& doc) {
     if (doc.isNull()) return;
     
     JsonObject root;
     if (doc.is<JsonObject>()) {
         root = doc.as<JsonObject>();
+    } else {
+        return;
     }
     
     if (root.isNull()) return;
     
-    // Базовая обработка (можно расширить позже)
+    // Безопасная обработка
     if (root.containsKey("theme")) {
-        // Обработка темы
+        if (root["theme"].is<JsonObject>()) {
+            JsonObject theme = root["theme"].as<JsonObject>();
+        }
     }
 }
 
 DynamicJsonDocument BruceConfig::toJson() const {
     DynamicJsonDocument doc(1024);
     JsonObject root = doc.to<JsonObject>();
-    // Базовая сериализация
+    root["version"] = "1.0";
     return doc;
 }
 
 DynamicJsonDocument loadConfig() {
     DynamicJsonDocument configDoc(1024);
+    const char* configJson = "{}";
     
-    // Минимальная безопасная реализация
-    JsonObject obj;
-    if (configDoc.is<JsonObject>()) {
-        obj = configDoc.as<JsonObject>();
+    DeserializationError error = deserializeJson(configDoc, configJson);
+    if (error) {
+        return configDoc;
     }
     
     BruceConfig config;
     config.fromJson(configDoc);
-    
     return configDoc;
 }

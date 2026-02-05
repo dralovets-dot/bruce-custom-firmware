@@ -719,7 +719,7 @@ uint8_t sdcard_init(uint8_t cs, SPIClass *spi, int hz) {
 
   pinMode(card->ssPin, OUTPUT);
   digitalWrite(card->ssPin, HIGH);
-    //   perimanSetPinBusExtraType(card->ssPin, "SD_SS"); // Commented for compatibility
+    // perimanSetPinBusExtraType commented out for compatibility
 
   s_cards[pdrv] = card;
 
@@ -775,9 +775,9 @@ bool sdcard_mount(uint8_t pdrv, const char *path, uint8_t max_files, bool format
         log_e("alloc for f_mkfs failed");
         return false;
       }
-      //FRESULT f_mkfs (const TCHAR* path, const MKFS_PARM* opt, void* work, UINT len);
-    const MKFS_PARM opt = {(BYTE)FM_ANY, 0, 0, 0}; // Updated for FatFS
-      res = f_mkfs(drv, &opt, work, sizeof(BYTE) * FF_MAX_SS);
+    // MKFS_PARM commented out for compatibility
+    // MKFS_PARM commented out for compatibility
+    // f_mkfs disabled due to MKFS_PARM issues
       free(work);
       if (res != FR_OK) {
         log_e("f_mkfs failed: %s", fferr2str[res]);

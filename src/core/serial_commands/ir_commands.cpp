@@ -162,14 +162,14 @@ uint32_t irSendCallback(cmd *c) {
     args_str.trim();
     // serialDevice->println(command);
 
-    JsonDocument jsonDoc;
+    DynamicJsonDocument jsonDoc(1024);
     if (deserializeJson(jsonDoc, args_str)) {
         serialDevice->println("Failed to parse json");
         serialDevice->println(args_str);
         return false;
     }
 
-    JsonObject args_json = jsonDoc.is<JsonObject>() ? &.as<JsonObject>() : JsonObject(); // root
+    JsonObject args_json = jsonDoc.is<JsonObject>() ? .as<JsonObject>() : JsonObject(); // root
 
     uint16_t bits = 32;         // defaults to 32 bits
     String protocolStr = "nec"; // defaults to NEC protocol

@@ -55,7 +55,7 @@ String generate_random_identity() {
 }
 
 void send_pwnagotchi_beacon(uint8_t channel, const char *face, const char *name) {
-    JsonDocument json;
+    DynamicJsonDocument json(1024);
     json["pal"] = true;
     json["name"] = name;
     json["face"] = face; // change to {} to freeze the screen

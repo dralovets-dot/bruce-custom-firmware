@@ -30,7 +30,7 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath, bool overwriteConfigSett
     }
 
     // Deserialize the JSON document
-    JsonDocument jsonDoc;
+    DynamicJsonDocument jsonDoc(1024);
     if (deserializeJson(jsonDoc, file)) {
         displayError("5", true);
         log_e("THEME: %s. Using default theme", "Failed reading theme file");
@@ -61,7 +61,7 @@ bool BruceTheme::openThemeFile(FS *fs, String filepath, bool overwriteConfigSett
         {"lora",        &theme.lora,        theme.paths.lora       }
     };
 
-    JsonObject _th = jsonDoc.is<JsonObject>() ? &.as<JsonObject>() : JsonObject();
+    JsonObject _th = jsonDoc.is<JsonObject>() ? .as<JsonObject>() : JsonObject();
     for (auto &entry : entries) {
         if (!_th[entry.key].isNull()) {
             String path = baseThemePath + _th[entry.key].as<String>();

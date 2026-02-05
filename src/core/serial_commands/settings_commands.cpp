@@ -12,7 +12,7 @@ uint32_t settingsCallback(cmd *c) {
     setting_value.trim();
 
     JsonDocument jsonDoc = bruceConfig.toJson();
-    JsonObject setting = jsonDoc.is<JsonObject>() ? &.as<JsonObject>() : JsonObject();
+    JsonObject setting = jsonDoc.is<JsonObject>() ? .as<JsonObject>() : JsonObject();
 
     if (setting_name.length() == 0 && setting_value.length() == 0) {
         // no args, just prints current config

@@ -319,7 +319,7 @@ JSValue native_httpFetch(JSContext *ctx, JSValue *this_val, int argc, JSValue *a
                 ctx, obj, "body", JS_NewUint8ArrayCopy(ctx, (const uint8_t *)payload, bytesRead)
             );
         } else {
-            JsonDocument doc;
+            DynamicJsonDocument doc(1024);
             DeserializationError error = deserializeJson(doc, payload, bytesRead);
             if (error) {
                 free(payload);

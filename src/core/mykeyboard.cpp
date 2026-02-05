@@ -138,7 +138,7 @@ keyStroke _getKeyPress() {
 ** runs a function called by the shortcut action
 **********************************************************************/
 void checkShortcutPress() {
-    static JsonDocument shortcutsJson; // parsed only once
+    static DynamicJsonDocument shortcutsJson(1024); // parsed only once
 
     // lazy init
     if (shortcutsJson.size() == 0) {
@@ -168,7 +168,7 @@ void checkShortcutPress() {
     keyStroke key = _getKeyPress();
 
     // parse shortcutsJson and check the keys
-    for (JsonPair kv : shortcutsJson.is<JsonObject>() ? &.as<JsonObject>() : JsonObject()) {
+    for (JsonPair kv : shortcutsJson.is<JsonObject>() ? .as<JsonObject>() : JsonObject()) {
         const char *shortcut_key = kv.key().c_str();
         const char *shortcut_value = kv.value().as<const char *>();
 

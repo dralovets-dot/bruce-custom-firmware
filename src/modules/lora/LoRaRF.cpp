@@ -404,7 +404,7 @@ void lorachat() {
     }
     if (!LittleFS.exists("/lora_settings.json")) {
         Serial.println("creating lora settings .json file");
-        JsonDocument doc;
+        DynamicJsonDocument doc(1024);
         File file = LittleFS.open("/lora_settings.json", "w");
         doc["LoRa_Frequency"] = "434500000.00";
         doc["LoRa_Name"] = "BruceTest";
@@ -413,7 +413,7 @@ void lorachat() {
         file.close();
     }
     File file = LittleFS.open("/lora_settings.json", "r");
-    JsonDocument doc;
+    DynamicJsonDocument doc(1024);
     deserializeJson(doc, file);
     displayName = doc["LoRa_Name"].as<String>();
     double BAND = doc["LoRa_Frequency"].as<String>().toDouble();
@@ -453,7 +453,7 @@ void changeusername() {
     String username = keyboard(username, 64, "");
     if (username == "") return;
     File file = LittleFS.open("/lora_settings.json", "r");
-    JsonDocument doc;
+    DynamicJsonDocument doc(1024);
     deserializeJson(doc, file);
     file.close();
     doc["LoRa_Name"] = username;
@@ -466,7 +466,7 @@ void chfreq() {
     tft.fillScreen(TFT_BLACK);
     char buf[15];
     File file = LittleFS.open("/lora_settings.json", "r");
-    JsonDocument doc;
+    DynamicJsonDocument doc(1024);
     deserializeJson(doc, file);
     file.close();
 

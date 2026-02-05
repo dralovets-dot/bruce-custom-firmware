@@ -16,9 +16,9 @@
 #include "core/serial_commands/cli.h"
 #include "core/startup_app.h"
 #include <Arduino.h>
-#include <ESP32Time.h>
+// #include <ESP32Time.h>  // TEMPORARILY DISABLED
 #include <LittleFS.h>
-#include <NTPClient.h>
+// #include <NTPClient.h>  // TEMPORARILY DISABLED
 #include <SPI.h>
 #include <functional>
 #include <io_expander/io_expander.h> // ./lib/HAL
@@ -246,4 +246,39 @@ extern inline bool check(volatile bool &btn, bool resetButtonStatus = true) {
 
 extern gpio_num_t mic_bclk_pin; // used to configure Cardputer ADV Microphone
 
+#endif
+
+// TEMPORARY STUBS for compilation
+#ifdef NTPCLIENT_H
+  // NTPClient already defined
+#else
+  class NTPClient {
+  public:
+    void begin() {}
+    void update() {}
+    unsigned long getEpochTime() { return 0; }
+  };
+#endif
+
+#ifdef ESP32TIME_H
+  // ESP32Time already defined  
+#else
+  class ESP32Time {
+  public:
+    void setTime(long epoch) {}
+    String getTime() { return "00:00:00"; }
+  };
+#endif
+
+#ifdef SIMPLECLI_H
+  // SimpleCLI already defined
+#else
+  class CLI {
+  public:
+    void parse(String cmd) {}
+  };
+  class Command {
+  public:
+    void addArg(String arg) {}
+  };
 #endif

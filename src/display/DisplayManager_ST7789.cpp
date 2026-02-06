@@ -88,8 +88,8 @@ void DisplayManager_ST7789::drawMenu(const String items[], uint8_t count,
 
 void DisplayManager_ST7789::drawButton(int16_t x, int16_t y, uint16_t w, 
                                       uint16_t h, const String& label, bool pressed) {
-    // Исправлено: ST77XX_DARKGRAY вместо ST77XX_DARKGREY
-    uint32_t bgColor = pressed ? ST77XX_DARKGRAY : ST77XX_BLUE;
+    // Используем доступные цвета: при нажатии - темно-серый (0x3186), иначе синий
+    uint32_t bgColor = pressed ? 0x3186 : ST77XX_BLUE;
     uint32_t textColor = pressed ? ST77XX_BLACK : ST77XX_WHITE;
     
     tft.fillRoundRect(x, y, w, h, 5, bgColor);

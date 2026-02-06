@@ -1,34 +1,29 @@
-name: Build T-Embed Firmware
+name: Build LilyGo T-Embed Firmware
 
 on:
   push:
-    branches: [t-embed-custom-mod]
-  workflow_dispatch:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Ручной запуск
 
 jobs:
   build:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v3
+    
+    - name: Setup and Build
+      run: |
+        chmod +x build_script.sh
+        ./build_script.sh
       
-    - name: Setup Python
-      uses: actions/setup-python@v5
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
       with:
-        python-version: '3.10'
-        
-    - name: Install PlatformIO
-      run: |
-        pip install platformio
-        
-    - name: Build firmware
-      run: |
-        pio run -e lilygo-t-embed-cc1101
-        
-    - name: Upload firmware
-      uses: actions/upload-artifact@v4
-      with:
-        name: firmware
-        path: .pio/build/lilygo-t-embed-cc1101/firmware.bin
+        name: firmware-build
+        path: |
+          ./build/*.bin
+          ./build/*.elf
         retention-days: 7

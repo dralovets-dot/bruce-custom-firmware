@@ -1,8 +1,42 @@
-name: Build
-on: [push]
+name: PlatformIO CI
+
+on:
+  push:
+    branches: [ enhanced-bruteforce ]
+  pull_request:
+    branches: [ enhanced-bruteforce ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - run: pip install platformio && pio run
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install PlatformIO Core
+      run: pip install platformio
+      
+    - name: Build PlatformIO Project
+      run: pio run
+      
+    - name: Archive firmware artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: firmware-${{ github.sha }}
+        path: |
+          .pio/build/lilygo-t-embed-cc1101/firmware.bin
+          .pio/build/lilygo-t-embed-cc1101/firmware.elf
+        retention-days: 7
+        
+    - name: Upload production firmware
+      uses: actions/upload-artifact@v4
+      if: github.event_name == 'push'
+      with:
+        name: bruce-t-embed-latest
+        path: .pio/build/lilygo-t-embed-cc1101/firmware.bin
+        retention-days: 30
